@@ -59,164 +59,169 @@ public class RestClient {
 
     private static final String HEADER_ACCEPT_ENCODING = "Accept-Encoding";
     private static final String ENCODING_GZIP = "gzip";
-	
-	private ArrayList <NameValuePair> params;
-	private ArrayList <NameValuePair> headers;
 
-	private String body;
+    private ArrayList <NameValuePair> params;
+    private ArrayList <NameValuePair> headers;
 
-	private String url;
+    private String body;
 
-	private int responseCode;
+    private String url;
 
-	private String cookie;
+    private int responseCode;
 
-	private String response;
-	private int status;
+    private String cookie;
 
-	private String methodType;
+    private String response;
+    private int status;
+    private Header[] responseHeaders;
 
-	public String getResponse() {
-		return response;
-	}
+    private String methodType;
 
-	public int getStatus() {
-		return status;
-	}
+    public String getResponse() {
+        return response;
+    }
 
-	public int getResponseCode() {
-		return responseCode;
-	}
+    public int getStatus() {
+        return status;
+    }
 
-	public RestClient(String url)
-	{
-		this.url = url;
-		params = new ArrayList<NameValuePair>();
-		headers = new ArrayList<NameValuePair>();
-		body = null;
-	}
+    public int getResponseCode() {
+        return responseCode;
+    }
+
+    public Header[] getResponseHeaders() {
+        return responseHeaders;
+    }
+
+    public RestClient(String url)
+    {
+        this.url = url;
+        params = new ArrayList<NameValuePair>();
+        headers = new ArrayList<NameValuePair>();
+        body = null;
+    }
 
     public void enableLog(boolean enable) {
         CachedRestClient.setLogEnabled(enable);
     }
-    
-	public void setCookie(String cookie) {
-		this.cookie = cookie;
-	}
 
-	public void AddParam(String name, String value)
-	{
-		params.add(new BasicNameValuePair(name, value));
-	}
+    public void setCookie(String cookie) {
+        this.cookie = cookie;
+    }
 
-	public void AddHeader(String name, String value)
-	{
-		headers.add(new BasicNameValuePair(name, value));
-	}
+    public void AddParam(String name, String value)
+    {
+        params.add(new BasicNameValuePair(name, value));
+    }
 
-	public void setBody(String b) {
-		body = b;
-	}
+    public void AddHeader(String name, String value)
+    {
+        headers.add(new BasicNameValuePair(name, value));
+    }
 
-	public void Execute(RequestMethod method) throws Exception
-	{
-		switch(method) {
-		case GET:
-		{
-			methodType = "GET";
-			//add parameters
-			String combinedParams = "";
-			if(!params.isEmpty()){
-				combinedParams += "?";
-				for(NameValuePair p : params)
-				{
-					String paramString = p.getName() + "=" + URLEncoder.encode(p.getValue(),"UTF-8");
-					if(combinedParams.length() > 1)
-					{
-						combinedParams  +=  "&" + paramString;
-					}
-					else
-					{
-						combinedParams += paramString;
-					}
-				}
-			}
+    public void setBody(String b) {
+        body = b;
+    }
 
-			HttpGet request = new HttpGet(url + combinedParams);
+    public void Execute(RequestMethod method) throws Exception
+    {
+        switch(method) {
+            case GET:
+            {
+                methodType = "GET";
+                //add parameters
+                String combinedParams = "";
+                if(!params.isEmpty()){
+                    combinedParams += "?";
+                    for(NameValuePair p : params)
+                    {
+                        String paramString = p.getName() + "=" + URLEncoder.encode(p.getValue(),"UTF-8");
+                        if(combinedParams.length() > 1)
+                        {
+                            combinedParams  +=  "&" + paramString;
+                        }
+                        else
+                        {
+                            combinedParams += paramString;
+                        }
+                    }
+                }
 
-			//add headers
-			for(NameValuePair h : headers)
-			{
-				request.addHeader(h.getName(), h.getValue());
+                HttpGet request = new HttpGet(url + combinedParams);
 
-			}
+                //add headers
+                for(NameValuePair h : headers)
+                {
+                    request.addHeader(h.getName(), h.getValue());
 
-			executeRequest(request, url);
-			break;
-		}
-		case DELETE:
-		{
-			methodType = "DELETE";
-			HttpDelete request = new HttpDelete(url);
+                }
 
-			//add headers
-			for(NameValuePair h : headers)
-			{
-				request.addHeader(h.getName(), h.getValue());
-			}
+                executeRequest(request, url);
+                break;
+            }
+            case DELETE:
+            {
+                methodType = "DELETE";
+                HttpDelete request = new HttpDelete(url);
 
-			executeRequest(request, url);
-			break;
-		}			
-		case POST:
-		{
-			methodType = "POST";
-			HttpPost request = new HttpPost(url);
+                //add headers
+                for(NameValuePair h : headers)
+                {
+                    request.addHeader(h.getName(), h.getValue());
+                }
 
-			//add headers
-			for(NameValuePair h : headers)
-			{
-				request.addHeader(h.getName(), h.getValue());
-			}
-			request.addHeader("Accept","application/json");
+                executeRequest(request, url);
+                break;
+            }
+            case POST:
+            {
+                methodType = "POST";
+                HttpPost request = new HttpPost(url);
 
-			if(!params.isEmpty()){
-				request.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
-			}
+                //add headers
+                for(NameValuePair h : headers)
+                {
+                    request.addHeader(h.getName(), h.getValue());
+                }
+                request.addHeader("Accept","application/json");
+
+                if(!params.isEmpty()){
+                    request.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
+                }
 
 
-			if(body!=null) {
-				request.setEntity(new StringEntity(body,HTTP.UTF_8));
+                if(body!=null) {
+                    request.setEntity(new StringEntity(body,HTTP.UTF_8));
 
-			}
+                }
 
-			executeRequest(request, url);
-			break;
-		}
-		case PUT:
-		{
-			methodType = "PUT";
-			HttpPut request = new HttpPut(url);
+                executeRequest(request, url);
+                break;
+            }
+            case PUT:
+            {
+                methodType = "PUT";
+                HttpPut request = new HttpPut(url);
 
-			//add headers
-			for(NameValuePair h : headers)
-			{
-				request.addHeader(h.getName(), h.getValue());
-			}
-			request.addHeader("Content-type","application/json");
+                //add headers
+                for(NameValuePair h : headers)
+                {
+                    request.addHeader(h.getName(), h.getValue());
+                }
+                request.addHeader("Content-type","application/json");
 
-			if(!params.isEmpty()){
-				request.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
-			}
+                if(!params.isEmpty()){
+                    request.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
+                }
 
-			if(body!=null) {
-				request.setEntity(new StringEntity(body));
+                if(body!=null) {
+                    request.setEntity(new StringEntity(body));
 
-			}
+                }
 
-			executeRequest(request, url);
-			break;
-		}
+                executeRequest(request, url);
+                break;
+            }
             case PATCH:
             {
                 methodType = "PATCH";
@@ -243,8 +248,8 @@ public class RestClient {
             }
 
 
-		}
-	}
+        }
+    }
 
     private SSLSocketFactory sslSocketFactory = null;
 
@@ -264,48 +269,48 @@ public class RestClient {
         }
     }
 
-	public void executeRequest(HttpUriRequest getRequest,String url) throws Exception {
+    public void executeRequest(HttpUriRequest getRequest,String url) throws Exception {
 
-		// uncomment if you need an extra log "curl-like" for debugging
+        // uncomment if you need an extra log "curl-like" for debugging
 
-		String curl = "curl --request "+methodType+" -i ";
-		for(Header h : getRequest.getAllHeaders()) {
-			curl += " --header \""+h.getName()+":"+h.getValue()+"\"";
-		}
-		if(getRequest instanceof HttpPut || getRequest instanceof HttpPost)
-		{
-			try {
-				String getEntityStr = convertStreamToString(((HttpPost) getRequest).getEntity().getContent()) ; 
-				//System.out.println("ENTITY:"+getEntityStr);
-				curl += " -d \""+getEntityStr.trim()+"\"";
-			}
-			catch(Exception e) {}
-		}
+        String curl = "curl --request "+methodType+" -i ";
+        for(Header h : getRequest.getAllHeaders()) {
+            curl += " --header \""+h.getName()+":"+h.getValue()+"\"";
+        }
+        if(getRequest instanceof HttpPut || getRequest instanceof HttpPost)
+        {
+            try {
+                String getEntityStr = convertStreamToString(((HttpPost) getRequest).getEntity().getContent()) ;
+                //System.out.println("ENTITY:"+getEntityStr);
+                curl += " -d \""+getEntityStr.trim()+"\"";
+            }
+            catch(Exception e) {}
+        }
 
-		curl += " "+url;
-		Utils.log("curlString", curl);
+        curl += " "+url;
+        Utils.log("curlString", curl);
 
 
-		SchemeRegistry schemeRegistry = new SchemeRegistry();
-		schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+        SchemeRegistry schemeRegistry = new SchemeRegistry();
+        schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
         if(sslSocketFactory!=null)
             schemeRegistry.register(new Scheme("https",sslSocketFactory, 443));
         else
             schemeRegistry.register(new Scheme("https", new EasySSLSocketFactory(), 443));
 
-		HttpParams params = new BasicHttpParams();
-		int timeoutConnection = 60000;
-		HttpConnectionParams.setConnectionTimeout(params, timeoutConnection);
-		int timeoutSocket = 60000;
-		HttpConnectionParams.setSoTimeout(params, timeoutSocket);
-		params.setParameter(ConnManagerPNames.MAX_TOTAL_CONNECTIONS, 30);
-		params.setParameter(ConnManagerPNames.MAX_CONNECTIONS_PER_ROUTE, new ConnPerRouteBean(30));
-		params.setParameter(HttpProtocolParams.USE_EXPECT_CONTINUE, false);
-		HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
+        HttpParams params = new BasicHttpParams();
+        int timeoutConnection = 60000;
+        HttpConnectionParams.setConnectionTimeout(params, timeoutConnection);
+        int timeoutSocket = 60000;
+        HttpConnectionParams.setSoTimeout(params, timeoutSocket);
+        params.setParameter(ConnManagerPNames.MAX_TOTAL_CONNECTIONS, 30);
+        params.setParameter(ConnManagerPNames.MAX_CONNECTIONS_PER_ROUTE, new ConnPerRouteBean(30));
+        params.setParameter(HttpProtocolParams.USE_EXPECT_CONTINUE, false);
+        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
 
-		ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
+        ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
 
-		DefaultHttpClient client = new DefaultHttpClient(cm,params);
+        DefaultHttpClient client = new DefaultHttpClient(cm,params);
         client.addRequestInterceptor(new HttpRequestInterceptor() {
             public void process(HttpRequest request, HttpContext context) {
                 // Add header to accept gzip content
@@ -332,67 +337,69 @@ public class RestClient {
                 }
             }
         });
-		//client.getCookieStore().addCookie(new BasicClientCookie("Cookie", cookie));
+        //client.getCookieStore().addCookie(new BasicClientCookie("Cookie", cookie));
 
-		status= 0;
+        status= 0;
 
-		try {
-			HttpResponse getResponse = client.execute(getRequest);
+        try {
+            HttpResponse getResponse = client.execute(getRequest);
 
-			status = getResponse.getStatusLine().getStatusCode();
-			Utils.log("DEBUG","STATUS CODE:"+status);
+            status = getResponse.getStatusLine().getStatusCode();
+            Utils.log("DEBUG","STATUS CODE:"+status);
 
-			HttpEntity getResponseEntity = getResponse.getEntity();
-			if(getResponseEntity!=null)
+            responseHeaders = getResponse.getAllHeaders();
+
+            HttpEntity getResponseEntity = getResponse.getEntity();
+            if(getResponseEntity!=null)
                 response = convertStreamToString(getResponseEntity.getContent());
             else
                 response = "";
-			Utils.log("DEBUG/RESPONSE",response);
-		} 
-		catch (IOException e) {
-			getRequest.abort();
-			Utils.log("DEBUG", "IO Error for URL " + url);
-			e.printStackTrace();
-			throw e;
+            Utils.log("DEBUG/RESPONSE",response);
+        }
+        catch (IOException e) {
+            getRequest.abort();
+            Utils.log("DEBUG", "IO Error for URL " + url);
+            e.printStackTrace();
+            throw e;
 
-		} catch(Exception e) {
-			getRequest.abort();
-			e.printStackTrace();
-			Utils.log("DEBUG", status+":General Error for URL " + url);
-			throw e;
-		}
-	}
+        } catch(Exception e) {
+            getRequest.abort();
+            e.printStackTrace();
+            Utils.log("DEBUG", status+":General Error for URL " + url);
+            throw e;
+        }
+    }
 
-	private static String convertStreamToString(InputStream is) {
+    private static String convertStreamToString(InputStream is) {
 
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-		StringBuilder sb = new StringBuilder();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
 
-		String line = null;
-		try {
-			while ((line = reader.readLine()) != null) {
-				sb.append(line + "\n");
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				is.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		return sb.toString();
-	}
+        String line = null;
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return sb.toString();
+    }
 
-	public enum RequestMethod
-	{
-		GET,
-		POST,
-		DELETE,
-		PUT,
+    public enum RequestMethod
+    {
+        GET,
+        POST,
+        DELETE,
+        PUT,
         PATCH
-	}
+    }
 
     private static class InflatingEntity extends HttpEntityWrapper {
         public InflatingEntity(HttpEntity wrapped) {
